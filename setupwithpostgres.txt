@@ -1,0 +1,34 @@
+// This creates the package.json file...
+npm init -y
+
+// create a /src folder to put all the api
+
+// create the entry point to our app which is server.js inside the src folder
+
+// install express
+npm install express
+
+// install nodemon in dev dependency
+npm install nodemon --save-dev
+
+// add nodemon dev script in package.json for running server
+"dev": "nodemon src/server.js"
+
+//database setup
+
+npx prisma init
+
+npm install prisma --save-dev
+
+npm install @prisma/client
+
+// add models and migrate
+
+npx prisma migrate reset //delete data and fix database
+npx prisma migrate dev --name init02
+
+npx prisma generate
+
+
+
+
