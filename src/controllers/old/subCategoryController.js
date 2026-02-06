@@ -1,5 +1,5 @@
 import SubCategory from "../models/subCategory.js";
-import Category from "../models/category.js";
+import Category from "../../models/category.js";
 
 // ================= CREATE SUBCATEGORY =================
 export const createSubCategory = async (req, res) => {

@@ -1,17 +1,43 @@
 import mongoose from "mongoose";
 const { Schema } = mongoose;
+import { MODES } from "./constants/types";
 
-// Contains all the quizzes available in the system
+const optionSnapshotSchema = new Schema(
+  {
+    text: String,
+    mediaUrl: String,
+    isCorrect: Boolean,
+    matchKey: String,
+    matchSide: { type: String, enum: ["LEFT", "RIGHT"] },
+    correctOrder: Number,
+  },
+  { _id: false },
+);
+
+const questionSnapshotSchema = new Schema({
+  questionId: { type: Schema.Types.ObjectId }, // original reference (optional)
+
+  questionText: String,
+  type: String,
+  difficulty: String,
+
+  mediaType: String,
+  mediaUrl: String,
+
+  options: [optionSnapshotSchema],
+  timeLimit: Number,
+});
 
 const quizSchema = new Schema(
   {
     title: { type: String, required: true },
+    mode: { type: String, enum: MODES, required: true, index: true },
     quizType: {
       type: String,
-      enum: ["PREDEFINED", "RANDOM", "DAILY", "TOURNAMENT"],
+      enum: QUIZ_TYPES,
       required: true,
     },
-    questions: [{ type: Schema.Types.ObjectId, ref: "Question" }],
+    questions: [questionSnapshotSchema],
   },
   { timestamps: true },
 );

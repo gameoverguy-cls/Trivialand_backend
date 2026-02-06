@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { QUESTION_TYPES } from "./constants/questionTypes";
 const { Schema } = mongoose;
 
 const questionSchema = new Schema(
@@ -6,17 +7,7 @@ const questionSchema = new Schema(
     questionText: { type: String, required: true },
     type: {
       type: String,
-      enum: [
-        "MCQ_SINGLE",
-        "MCQ_MULTI",
-        "TRUE_FALSE",
-        "ODD_ONE_OUT",
-        "MATCH_FOLLOWING",
-        "ORDERING",
-        "IMAGE_MCQ",
-        "AUDIO_MCQ",
-        "VIDEO_MCQ",
-      ],
+      enum: QUESTION_TYPES,
       required: true,
     },
     difficulty: {
@@ -36,7 +27,9 @@ const questionSchema = new Schema(
       required: true,
     },
     tags: [{ type: Schema.Types.ObjectId, ref: "Tag" }],
-    subCategories: [{ type: Schema.Types.ObjectId, ref: "SubCategory" }],
+    isActive: { type: Boolean, default: true },
+    timeLimit: { type: Number }, // seconds
+    createdBy: { type: Schema.Types.ObjectId, ref: "User" },
   },
   { timestamps: true },
 );

@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { QUESTION_TYPES } from "./constants/types";
 const { Schema } = mongoose;
 
 const quizBlueprintSchema = new Schema(
@@ -28,23 +29,15 @@ const quizBlueprintSchema = new Schema(
     },
 
     typeDistribution: {
-      MCQ_SINGLE: Number,
-      MCQ_MULTI: Number,
-      TRUE_FALSE: Number,
-      MATCH_FOLLOWING: Number,
-      ORDERING: Number,
+      type: Map,
+      of: Number, // count per question type
+      default: {},
     },
 
     allowedTypes: [
       {
         type: String,
-        enum: [
-          "MCQ_SINGLE",
-          "MCQ_MULTI",
-          "TRUE_FALSE",
-          "MATCH_FOLLOWING",
-          "ORDERING",
-        ],
+        enum: QUESTION_TYPES,
       },
     ],
   },

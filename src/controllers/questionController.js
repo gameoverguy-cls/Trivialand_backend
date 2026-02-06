@@ -1,7 +1,6 @@
-import Question from "../models/question.js";
-import Option from "../models/option.js";
+import Question from "../models/questionSet.js";
+import { validateQuestion } from "./validators/questionSetValidator.js";
 
-// CREATE QUESTION
 export const createQuestion = async (req, res) => {
   try {
     const {
@@ -11,45 +10,48 @@ export const createQuestion = async (req, res) => {
       mediaType,
       mediaUrl,
       category,
-      subCategories = [],
       tags = [],
       options = [],
+      timeLimit,
     } = req.body;
 
-    if (!questionText || !type || !mediaType || !difficulty || !category) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Missing required fields" });
+    // 🔹 validate options based on question type (important)
+    if (options.length < 2) {
+      return res.status(400).json({
+        success: false,
+        message: "At least 2 options required",
+      });
     }
 
-    // Create question
-    const question = await Question.create({
+    const error = validateQuestion(req.body);
+
+    if (error) {
+      return res.status(400).json({ success: false, message: error });
+    }
+
+    // 🔹 create question with embedded options
+    await Question.create({
       questionText,
       type,
       difficulty,
       mediaType,
       mediaUrl,
       category,
-      subCategories: subCategories,
-      tags: tags,
+      tags,
+      options,
+      timeLimit,
+      createdBy: req.user?._id,
     });
 
-    // Create options
-    const optionDocs = options.map((o) => ({
-      questionId: question._id,
-      text: o.text,
-      mediaUrl: o.mediaUrl,
-      isCorrect: o.isCorrect,
-      matchKey: o.matchKey,
-      matchSide: o.matchSide,
-      correctOrder: o.correctOrder,
-    }));
-
-    await Option.insertMany(optionDocs);
-
-    return res.status(201).json({ success: true, message: "Question created" });
+    return res.status(201).json({
+      success: true,
+      message: "Question created successfully",
+    });
   } catch (err) {
-    return res.status(500).json({ success: false, message: err.message });
+    return res.status(500).json({
+      success: false,
+      message: err.message,
+    });
   }
 };
 
@@ -57,108 +59,109 @@ export const createQuestion = async (req, res) => {
 export const updateQuestion = async (req, res) => {
   try {
     const { id } = req.params;
-    const {
-      questionText,
-      difficulty,
-      mediaUrl,
-      categoryId,
-      subCategoryIds = [],
-      tagIds = [],
-      options = [],
-      deletedOptionIds = [],
-    } = req.body;
 
-    const question = await Question.findByIdAndUpdate(
-      id,
-      {
-        questionText,
-        type,
-        difficulty,
-        mediaUrl,
-        categoryId,
-        subCategories: subCategoryIds,
-        tags: tagIds,
-      },
-      { new: true, runValidators: true },
-    );
-
+    const question = await Question.findById(id);
     if (!question) {
-      return res.status(404).json({ msg: "Question not found" });
+      return res.status(404).json({
+        success: false,
+        message: "Question not found",
+      });
     }
 
-    // 1. update existing options
-    const existingOptions = options.filter((o) => o.id);
-    for (const opt of existingOptions) {
-      await Option.findByIdAndUpdate(
-        opt.id,
-        {
-          text: opt.text,
-          mediaUrl: opt.mediaUrl,
-          isCorrect: opt.isCorrect,
-        },
-        { new: true },
-      );
+    // 🔒 Allowed PATCH fields only
+    const allowedFields = [
+      "questionText",
+      "type",
+      "difficulty",
+      "mediaType",
+      "mediaUrl",
+      "category",
+      "tags",
+      "options",
+      "timeLimit",
+      "isActive",
+      "isApproved",
+    ];
+
+    // 🧩 Apply partial updates safely
+    for (const field of allowedFields) {
+      if (field in req.body) {
+        question[field] = req.body[field];
+      }
     }
 
-    // 2. create new options
-    const newOptions = options.filter((o) => !o.id);
-    if (newOptions.length) {
-      const newOptionDocs = newOptions.map((o) => ({
-        questionId: id,
-        text: o.text,
-        mediaUrl: o.mediaUrl,
-        isCorrect: o.isCorrect,
-      }));
-
-      await Option.insertMany(newOptionDocs);
+    // 🛡 Validate FULL merged question domain
+    const error = validateQuestion(question.toObject());
+    if (error) {
+      return res.status(400).json({
+        success: false,
+        message: error,
+      });
     }
 
-    // 3. delete removed options
-    if (deletedOptionIds.length) {
-      await Option.deleteMany({ _id: { $in: deletedOptionIds } });
-    }
+    // 💾 Save document (runs mongoose validators too)
+    await question.save();
 
-    await question.populate(["options", "tags", "subCategories"]);
-
-    return res.status(200).json({ msg: "Question updated", question });
+    return res.status(200).json({
+      success: true,
+      message: "Question updated successfully",
+      data: question,
+    });
   } catch (err) {
-    return res.status(500).json({ msg: "Server error", error: err.message });
-  }
-};
-
-// DELETE QUESTION
-export const deleteQuestion = async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    const question = await Question.findByIdAndDelete(id);
-
-    if (!question) {
-      return res.status(404).json({ msg: "Question not found" });
-    }
-
-    // delete related options
-    await Option.deleteMany({ questionId: id });
-
-    return res.status(200).json({ msg: "Question deleted" });
-  } catch (err) {
-    return res.status(500).json({ msg: "Server error", error: err.message });
+    return res.status(500).json({
+      success: false,
+      message: err.message,
+    });
   }
 };
 
 // GET ALL QUESTIONS
 export const getQuestions = async (req, res) => {
   try {
-    const questions = await Question.find()
-      .populate("categoryId", "name")
-      .populate("subCategories", "name")
-      .populate("tags", "name")
-      .populate("options")
-      .sort({ createdAt: -1 });
+    const {
+      page = 1,
+      limit = 10,
+      difficulty,
+      type,
+      category,
+      search,
+      isActive,
+    } = req.query;
 
-    return res.status(200).json(questions);
+    const query = {};
+
+    if (difficulty) query.difficulty = difficulty;
+    if (type) query.type = type;
+    if (category) query.category = category;
+    if (isActive !== undefined) query.isActive = isActive === "true";
+
+    if (search) {
+      query.questionText = { $regex: search, $options: "i" };
+    }
+
+    const skip = (Number(page) - 1) * Number(limit);
+
+    const questions = await Question.find(query)
+      .populate("category", "name")
+      .populate("tags", "name")
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(Number(limit));
+
+    const total = await Question.countDocuments(query);
+
+    return res.status(200).json({
+      success: true,
+      page: Number(page),
+      limit: Number(limit),
+      total,
+      data: questions,
+    });
   } catch (err) {
-    return res.status(500).json({ msg: "Server error", error: err.message });
+    return res.status(500).json({
+      success: false,
+      message: err.message,
+    });
   }
 };
 
@@ -168,17 +171,58 @@ export const getQuestionById = async (req, res) => {
     const { id } = req.params;
 
     const question = await Question.findById(id)
-      .populate("categoryId", "name")
-      .populate("subCategories", "name")
-      .populate("tags", "name")
-      .populate("options");
+      .populate("category", "name")
+      .populate("tags", "name");
 
     if (!question) {
-      return res.status(404).json({ msg: "Question not found" });
+      return res.status(404).json({
+        success: false,
+        message: "Question not found",
+      });
     }
 
-    return res.status(200).json(question);
+    return res.status(200).json({
+      success: true,
+      data: question,
+    });
   } catch (err) {
-    return res.status(500).json({ msg: "Server error", error: err.message });
+    return res.status(500).json({
+      success: false,
+      message: err.message,
+    });
+  }
+};
+
+export const toggleQuestionStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const question = await Question.findById(id);
+
+    if (!question) {
+      return res.status(404).json({
+        success: false,
+        message: "Question not found",
+      });
+    }
+
+    // 🔁 toggle isActive
+    question.isActive = !question.isActive;
+
+    await question.save();
+
+    return res.status(200).json({
+      success: true,
+      message: `Question ${question.isActive ? "enabled" : "disabled"} successfully`,
+      data: {
+        id: question._id,
+        isActive: question.isActive,
+      },
+    });
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      message: err.message,
+    });
   }
 };
