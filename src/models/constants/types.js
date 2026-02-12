@@ -22,4 +22,4 @@ export const MEDIA_TYPES = [
 
 export const MATCH_OPTION_SIDE = ["LEFT", "RIGHT"];
 
-export const QUIZ_TYPES = ["PREDEFINED", "RANDOM", "DAILY", "TOURNAMENT"];
+export const QUIZ_TYPES = ["CORE_RANDOM", "RANDOM", "DAILY", "TOURNAMENT"];

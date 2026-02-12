@@ -1,5 +1,5 @@
 import Quiz from "../models/quiz.js";
-import Question from "../models/question.js";
+import Question from "../models/questionSet.js";
 
 // CREATE QUIZ
 export const createQuiz = async (req, res) => {
@@ -63,23 +63,6 @@ export const updateQuiz = async (req, res) => {
     }
 
     res.status(200).json({ msg: "Quiz updated", quiz });
-  } catch (err) {
-    res.status(500).json({ msg: "Server error", error: err.message });
-  }
-};
-
-// DELETE QUIZ
-export const deleteQuiz = async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    const quiz = await Quiz.findByIdAndDelete(id);
-
-    if (!quiz) {
-      return res.status(404).json({ msg: "Quiz not found" });
-    }
-
-    res.status(200).json({ msg: "Quiz deleted" });
   } catch (err) {
     res.status(500).json({ msg: "Server error", error: err.message });
   }
