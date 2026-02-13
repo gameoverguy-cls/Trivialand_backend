@@ -1,15 +1,15 @@
-import express from "express";
-import {
-  submitAnswer,
-  getAttemptedQuestions,
-} from "../controllers/attemptedQuestionController.js";
+// import express from "express";
+// import {
+//   submitAnswer,
+//   getAttemptedQuestions,
+// } from "../controllers/attemptedQuestionController.js";
 
-const router = express.Router();
+// const router = express.Router();
 
-// submit / retry answer
-router.post("/quiz-attempts/:attemptId/answer", submitAnswer);
+// // submit / retry answer
+// router.post("/quiz-attempts/:attemptId/answer", submitAnswer);
 
-// get all answers for an attempt
-router.get("/quiz-attempts/:attemptId/answers", getAttemptedQuestions);
+// // get all answers for an attempt
+// router.get("/quiz-attempts/:attemptId/answers", getAttemptedQuestions);
 
-export default router;
+// export default router;

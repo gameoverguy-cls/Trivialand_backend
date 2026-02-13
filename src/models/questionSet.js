@@ -4,7 +4,7 @@ import {
   DIFFICULTY,
   MEDIA_TYPES,
   MATCH_OPTION_SIDE,
-} from "./constants/types";
+} from "./constants/types.js";
 const { Schema } = mongoose;
 
 const optionSchema = new Schema(
@@ -14,8 +14,8 @@ const optionSchema = new Schema(
     isCorrect: { type: Boolean, default: false },
     matchKey: { type: String },
     matchSide: {
-      code: { type: String, enum: MATCH_OPTION_SIDE, required: true },
-      label: { type: String, required: true },
+      code: { type: String, enum: MATCH_OPTION_SIDE },
+      label: { type: String },
     },
     correctOrder: { type: Number },
   },
@@ -25,7 +25,7 @@ const optionSchema = new Schema(
 const questionSchema = new Schema(
   {
     questionText: { type: String, required: true },
-    type: {
+    questionType: {
       code: { type: String, enum: QUESTION_TYPES, required: true },
       label: { type: String, required: true },
     },

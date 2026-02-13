@@ -1,3 +1,8 @@
+import {
+  DIFFICULTY_LABEL,
+  MEDIA_TYPES_LABEL,
+  QUESTION_TYPES_LABEL,
+} from "../models/constants/types.js";
 import Question from "../models/questionSet.js";
 import { validateQuestion } from "./validators/questionSetValidator.js";
 
@@ -5,7 +10,7 @@ export const createQuestion = async (req, res) => {
   try {
     const {
       questionText,
-      type,
+      questionType,
       difficulty,
       mediaType,
       mediaUrl,
@@ -14,14 +19,6 @@ export const createQuestion = async (req, res) => {
       options = [],
       timeLimit,
     } = req.body;
-
-    // 🔹 validate options based on question type (important)
-    if (options.length < 2) {
-      return res.status(400).json({
-        success: false,
-        message: "At least 2 options required",
-      });
-    }
 
     const error = validateQuestion(req.body);
 
@@ -32,9 +29,12 @@ export const createQuestion = async (req, res) => {
     // 🔹 create question with embedded options
     await Question.create({
       questionText,
-      type,
-      difficulty,
-      mediaType,
+      questionType: {
+        code: questionType,
+        label: QUESTION_TYPES_LABEL[questionType],
+      },
+      difficulty: { code: difficulty, label: DIFFICULTY_LABEL[difficulty] },
+      mediaType: { code: mediaType, label: MEDIA_TYPES_LABEL[mediaType] },
       mediaUrl,
       category,
       tags,
@@ -71,7 +71,7 @@ export const updateQuestion = async (req, res) => {
     // 🔒 Allowed PATCH fields only
     const allowedFields = [
       "questionText",
-      "type",
+      "questionType",
       "difficulty",
       "mediaType",
       "mediaUrl",
@@ -122,7 +122,7 @@ export const getQuestions = async (req, res) => {
       page = 1,
       limit = 10,
       difficulty,
-      type,
+      questionType,
       category,
       search,
       isActive,
@@ -131,7 +131,7 @@ export const getQuestions = async (req, res) => {
     const query = {};
 
     if (difficulty) query.difficulty = difficulty;
-    if (type) query.type = type;
+    if (questionType) query.questionType = questionType;
     if (category) query.category = category;
     if (isActive !== undefined) query.isActive = isActive === "true";
 

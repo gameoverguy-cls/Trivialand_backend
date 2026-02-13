@@ -13,9 +13,9 @@ connectDB();
 import questionRoutes from "./src/routes/questionRoutes.js";
 import authRoutes from "./src/routes/authRoutes.js";
 import categoryRoutes from "./src/routes/categoryRoutes.js";
-import subCategoryRoutes from "./src/routes/subCategoryRoutes.js";
-import quizAttemptRoutes from "./src/routes/quizAttemptRoutes.js";
-import attemptedQuestionRoutes from "./src/routes/attemptedQuestionRoutes.js";
+// import subCategoryRoutes from "./src/routes/subCategoryRoutes.js";
+// import quizAttemptRoutes from "./src/routes/quizAttemptRoutes.js";
+// import attemptedQuestionRoutes from "./src/routes/attemptedQuestionRoutes.js";
 import userRoutes from "./src/routes/userRoutes.js";
 
 // Allowed web frontends
@@ -62,9 +62,9 @@ app.use((req, res, next) => {
 app.use("/api/questions", questionRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/categories", categoryRoutes);
-app.use("/api/subcategories", subCategoryRoutes);
-app.use("/api/quizAttempts", quizAttemptRoutes);
-app.use("/api/attemptedQuestions", attemptedQuestionRoutes);
+// app.use("/api/subcategories", subCategoryRoutes);
+// app.use("/api/quizAttempts", quizAttemptRoutes);
+// app.use("/api/attemptedQuestions", attemptedQuestionRoutes);
 app.use("/api/users", userRoutes);
 
 const server = app.listen(PORT, () => {

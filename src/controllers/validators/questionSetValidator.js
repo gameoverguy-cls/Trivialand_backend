@@ -3,7 +3,7 @@ import {
   DIFFICULTY,
   MEDIA_TYPES,
   MATCH_OPTION_SIDE,
-} from "../constants/types.js";
+} from "../../models/constants/types.js";
 
 /* ------------------------------------------------------- */
 /* -------------------- HELPERS -------------------------- */
@@ -17,7 +17,7 @@ const inEnum = (value, list) => list.includes(value);
 /* ----------------- OPTIONS VALIDATION ------------------ */
 /* ------------------------------------------------------- */
 
-export const validateOptions = ({ type, mediaType, options }) => {
+export const validateOptions = ({ questionType, mediaType, options }) => {
   if (!Array.isArray(options) || options.length === 0) {
     return "Options must be a non-empty array";
   }
@@ -50,21 +50,21 @@ export const validateOptions = ({ type, mediaType, options }) => {
   /* ---------------- QUESTION TYPE RULES -------------- */
   /* --------------------------------------------------- */
 
-  if (type.code === "MCQ_SINGLE") {
+  if (questionType === "MCQ_SINGLE") {
     if (options.length < 2) return "MCQ_SINGLE requires at least 2 options";
 
     const correct = options.filter((o) => o.isCorrect).length;
     if (correct !== 1) return "MCQ_SINGLE must have exactly one correct option";
   }
 
-  if (type.code === "MCQ_MULTI") {
+  if (questionType === "MCQ_MULTI") {
     if (options.length < 2) return "MCQ_MULTI requires at least 2 options";
 
     const correct = options.filter((o) => o.isCorrect).length;
     if (correct < 2) return "MCQ_MULTI must have at least 2 correct options";
   }
 
-  if (type.code === "TRUE_FALSE") {
+  if (questionType === "TRUE_FALSE") {
     if (options.length !== 2)
       return "TRUE_FALSE must contain exactly 2 options";
 
@@ -72,7 +72,7 @@ export const validateOptions = ({ type, mediaType, options }) => {
     if (correct !== 1) return "TRUE_FALSE must have exactly one correct answer";
   }
 
-  if (type.code === "MATCH_FOLLOWING") {
+  if (questionType === "MATCH_FOLLOWING") {
     const left = options.filter((o) => o.matchSide === "LEFT");
     const right = options.filter((o) => o.matchSide === "RIGHT");
 
@@ -95,7 +95,7 @@ export const validateOptions = ({ type, mediaType, options }) => {
     }
   }
 
-  if (type.code === "ORDERING") {
+  if (questionType === "ORDERING") {
     if (options.length < 2) return "ORDERING requires at least 2 options";
 
     if (options.some((o) => o.correctOrder == null)) {
@@ -122,13 +122,13 @@ export const validateOptions = ({ type, mediaType, options }) => {
   /* ---------------- MEDIA TYPE RULES ----------------- */
   /* --------------------------------------------------- */
 
-  if (mediaType.code === "IMAGE_OPTIONS") {
+  if (mediaType === "IMAGE_OPTIONS") {
     if (options.some((o) => !isNonEmptyString(o.mediaUrl))) {
       return "IMAGE_OPTIONS requires mediaUrl for every option";
     }
   }
 
-  if (mediaType.code === "NONE") {
+  if (mediaType === "NONE") {
     if (options.some((o) => !isNonEmptyString(o.optionText))) {
       return "Options must contain optionText when mediaType is NONE";
     }
@@ -148,7 +148,7 @@ export const validateQuestion = (data) => {
 
   const {
     questionText,
-    type,
+    questionType,
     difficulty,
     mediaType,
     category,
@@ -159,7 +159,7 @@ export const validateQuestion = (data) => {
   // ---------- BASIC FIELDS ----------
   if (!isNonEmptyString(questionText)) return "Question text is required";
 
-  if (!inEnum(type, QUESTION_TYPES)) return "Invalid question type";
+  if (!inEnum(questionType, QUESTION_TYPES)) return "Invalid question type";
 
   if (!inEnum(difficulty, DIFFICULTY)) return "Invalid difficulty";
 
@@ -173,7 +173,7 @@ export const validateQuestion = (data) => {
   }
 
   // ---------- OPTIONS ----------
-  const optionError = validateOptions({ type, mediaType, options });
+  const optionError = validateOptions({ questionType, mediaType, options });
   if (optionError) return optionError;
 
   return null; // ✅ fully valid
