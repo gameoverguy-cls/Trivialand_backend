@@ -50,21 +50,21 @@ export const validateOptions = ({ type, mediaType, options }) => {
   /* ---------------- QUESTION TYPE RULES -------------- */
   /* --------------------------------------------------- */
 
-  if (type === "MCQ_SINGLE") {
+  if (type.code === "MCQ_SINGLE") {
     if (options.length < 2) return "MCQ_SINGLE requires at least 2 options";
 
     const correct = options.filter((o) => o.isCorrect).length;
     if (correct !== 1) return "MCQ_SINGLE must have exactly one correct option";
   }
 
-  if (type === "MCQ_MULTI") {
+  if (type.code === "MCQ_MULTI") {
     if (options.length < 2) return "MCQ_MULTI requires at least 2 options";
 
     const correct = options.filter((o) => o.isCorrect).length;
     if (correct < 2) return "MCQ_MULTI must have at least 2 correct options";
   }
 
-  if (type === "TRUE_FALSE") {
+  if (type.code === "TRUE_FALSE") {
     if (options.length !== 2)
       return "TRUE_FALSE must contain exactly 2 options";
 
@@ -72,7 +72,7 @@ export const validateOptions = ({ type, mediaType, options }) => {
     if (correct !== 1) return "TRUE_FALSE must have exactly one correct answer";
   }
 
-  if (type === "MATCH_FOLLOWING") {
+  if (type.code === "MATCH_FOLLOWING") {
     const left = options.filter((o) => o.matchSide === "LEFT");
     const right = options.filter((o) => o.matchSide === "RIGHT");
 
@@ -95,7 +95,7 @@ export const validateOptions = ({ type, mediaType, options }) => {
     }
   }
 
-  if (type === "ORDERING") {
+  if (type.code === "ORDERING") {
     if (options.length < 2) return "ORDERING requires at least 2 options";
 
     if (options.some((o) => o.correctOrder == null)) {
@@ -122,13 +122,13 @@ export const validateOptions = ({ type, mediaType, options }) => {
   /* ---------------- MEDIA TYPE RULES ----------------- */
   /* --------------------------------------------------- */
 
-  if (mediaType === "IMAGE_OPTIONS") {
+  if (mediaType.code === "IMAGE_OPTIONS") {
     if (options.some((o) => !isNonEmptyString(o.mediaUrl))) {
       return "IMAGE_OPTIONS requires mediaUrl for every option";
     }
   }
 
-  if (mediaType === "NONE") {
+  if (mediaType.code === "NONE") {
     if (options.some((o) => !isNonEmptyString(o.optionText))) {
       return "Options must contain optionText when mediaType is NONE";
     }

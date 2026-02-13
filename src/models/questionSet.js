@@ -13,7 +13,10 @@ const optionSchema = new Schema(
     mediaUrl: { type: String },
     isCorrect: { type: Boolean, default: false },
     matchKey: { type: String },
-    matchSide: { type: String, enum: MATCH_OPTION_SIDE },
+    matchSide: {
+      code: { type: String, enum: MATCH_OPTION_SIDE, required: true },
+      label: { type: String, required: true },
+    },
     correctOrder: { type: Number },
   },
   { _id: false },
@@ -22,26 +25,27 @@ const optionSchema = new Schema(
 const questionSchema = new Schema(
   {
     questionText: { type: String, required: true },
-    type: { type: String, enum: QUESTION_TYPES, required: true },
+    type: {
+      code: { type: String, enum: QUESTION_TYPES, required: true },
+      label: { type: String, required: true },
+    },
     difficulty: {
-      type: String,
-      enum: DIFFICULTY,
-      required: true,
-      default: "EASY",
+      code: { type: String, enum: DIFFICULTY, required: true },
+      label: { type: String, required: true },
     },
     mediaType: {
-      type: String,
-      enum: MEDIA_TYPES,
-      required: true,
-      default: "NONE",
+      code: {
+        type: String,
+        enum: MEDIA_TYPES,
+        required: true,
+        default: "NONE",
+      },
+      label: { type: String, required: true, default: "None" },
     },
     mediaUrl: { type: String },
-
     category: { type: Schema.Types.ObjectId, ref: "Category", required: true },
     tags: [{ type: Schema.Types.ObjectId, ref: "Tag" }],
-
     options: [optionSchema],
-
     isActive: { type: Boolean, default: true },
     isApproved: { type: Boolean, default: true },
     timeLimit: { type: Number, default: 10 },
